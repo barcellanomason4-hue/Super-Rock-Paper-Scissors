@@ -1,1 +1,218 @@
+import random
+import sys
 
+def main(round_number):
+    print(f"\n--- Round {round_number} ---")
+    print(f"Difficulty: {'Easy' if round_number == 1 else 'Medium' if round_number == 2 else 'Hard'}")
+    
+    while True:
+        player_choice = input("Choose rock, paper, or scissors: ").lower().strip()
+        if player_choice in ['rock', 'paper', 'scissors']:
+            break
+        else:
+            print("Literally its rock, paper, or scissors. Are you blind?")
+    
+    computer_choice = get_computer_choice(round_number)
+    
+    print(f"You chose: {player_choice}")
+    print(f"Computer chose: {computer_choice}")
+    
+    result = check_winner(player_choice, computer_choice)
+    
+    if result == 1:
+        print(f"Nice!!! {player_choice} beats {computer_choice}.")
+    elif result == -1:
+        print(f"YOU REEK OF LOSER, TRY HARDER. {computer_choice} beats {player_choice}.")
+    else:
+        print(f"Thats worse than losing, no stalemates. Both chose {player_choice}.")
+    
+    return result
+
+def get_computer_choice(round_number):
+    if round_number == 1:
+        return random.choice(['rock', 'paper', 'scissors'])
+    elif round_number == 2:
+        if random.random() < 0.5:
+            return random.choice(['rock', 'paper', 'scissors'])
+        else:
+            return random.choices(['rock', 'paper', 'scissors'], weights=[2, 4, 3], k=1)[0]
+    else:
+        choices = ['rock', 'paper', 'scissors']
+        return random.choices(choices, weights=[3, 5, 2], k=1)[0]
+
+def check_winner(player_choice, computer_choice):
+    if player_choice == computer_choice:
+        return 0
+    
+    if (player_choice == 'rock' and computer_choice == 'scissors') or \
+       (player_choice == 'paper' and computer_choice == 'rock') or \
+       (player_choice == 'scissors' and computer_choice == 'paper'):
+        return 1
+    
+    return -1
+
+def play_full_game():
+    print("It is Super Rock Paper Scissors!")
+    print("The game gets harder each round, so do not screw this up.")
+    print("=" * 40)
+    
+    player_score = 0
+    computer_score = 0
+    ties = 0
+    
+    for round_num in range(1, 4):
+        result = main(round_num)
+        
+        if result == 1:
+            player_score += 1
+        elif result == -1:
+            computer_score += 1
+        else:
+            ties += 1
+        
+        print(f"\nCurrent Score: Player {player_score} - {computer_score} Computer (Ties: {ties})")
+        print("=" * 40)
+    
+    print("\n" + "=" * 40)
+    print("FINAL RESULTS")
+    print("=" * 40)
+    print(f"Player: {player_score} wins")
+    print(f"Computer: {computer_score} wins")
+    print(f"Ties: {ties}")
+    
+    if player_score > computer_score:
+        print("You are winner frfr 🎉")
+    elif computer_score > player_score:
+        print("💻 You actually disgust the entire human race with this loss")
+    else:
+        print("THERE ARE NO TIES, OR STALEMATES, SO TRY HARDER.")
+    
+    print("=" * 40)
+    
+    # Ask user if they want to see the visual screen
+    while True:
+        show_visual = input("\nShow visual results screen? (yes/no): ").lower().strip()
+        if show_visual in ['yes', 'y', 'no', 'n']:
+            break
+        print("Please enter 'yes' or 'no'")
+    
+    if show_visual in ['yes', 'y']:
+        print("\nLaunching visual judgment screen...")
+        try:
+            show_victory_screen(player_score, computer_score, ties)
+        except Exception as e:
+            print(f"Error launching visual screen: {e}")
+            print("Make sure Pygame is installed: pip install pygame")
+    else:
+        print("\nThanks for playing!")
+
+def show_victory_screen(player_score, computer_score, ties):
+    try:
+        import pygame
+    except ImportError:
+        print("ERROR: Pygame is not installed!")
+        print("Install it with: pip install pygame")
+        return
+    
+    pygame.init()
+    
+    WIDTH, HEIGHT = 800, 600  # Smaller window for testing
+    try:
+        screen = pygame.display.set_mode((WIDTH, HEIGHT))
+    except:
+        screen = pygame.display.set_mode((WIDTH, HEIGHT), pygame.RESIZABLE)
+    
+    pygame.display.set_caption("RPS Results")
+    
+    BLACK = (0, 0, 0)
+    RED = (255, 0, 0)
+    BRIGHT_RED = (255, 100, 100)
+    GREEN = (0, 255, 0)
+    BRIGHT_GREEN = (100, 255, 100)
+    BLUE = (0, 0, 255)
+    BRIGHT_BLUE = (100, 100, 255)
+    WHITE = (255, 255, 255)
+    GRAY = (150, 150, 150)
+    
+    pygame.font.init()
+    result_font = pygame.font.SysFont('arial', 48, bold=True)
+    score_font = pygame.font.SysFont('arial', 36)
+    detail_font = pygame.font.SysFont('arial', 24)
+    
+    if player_score > computer_score:
+        result_text = "YOU DID IT"
+        pulse_color = BRIGHT_RED
+        base_color = RED
+        title_text = "YOU ARE WINNER FRFR 🎉"
+    elif computer_score > player_score:
+        result_text = "Are we being serious?"
+        pulse_color = BRIGHT_GREEN
+        base_color = GREEN
+        title_text = "YOU LOST? YOU DISGUST THE ENTIRE HUMAN RACE"
+    else:
+        result_text = "No one even wins this one idiot"
+        pulse_color = BRIGHT_BLUE
+        base_color = BLUE
+        title_text = "NO TIES, NO STALEMATES - TRY HARDER"
+    
+    pulse_radius = 0
+    pulse_speed = 3
+    max_radius = 200
+    
+    clock = pygame.time.Clock()
+    running = True
+    
+    while running:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                running = False
+            elif event.type == pygame.KEYDOWN:
+                running = False
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                running = False
+        
+        pulse_radius += pulse_speed
+        if pulse_radius > max_radius:
+            pulse_radius = 0
+        
+        screen.fill(BLACK)
+        
+        # Draw sun pulse
+        for radius in range(100, 0, -10):
+            alpha = 40 - (radius // 4)
+            glow_surface = pygame.Surface((radius * 2, radius * 2), pygame.SRCALPHA)
+            pygame.draw.circle(glow_surface, (*base_color, alpha), (radius, radius), radius)
+            screen.blit(glow_surface, (WIDTH//2 - radius, HEIGHT//2 - radius))
+        
+        if pulse_radius > 0:
+            pulse_alpha = 100 - (pulse_radius / max_radius * 80)
+            pulse_surface = pygame.Surface((pulse_radius * 2, pulse_radius * 2), pygame.SRCALPHA)
+            pygame.draw.circle(pulse_surface, (*pulse_color, int(pulse_alpha)), 
+                             (pulse_radius, pulse_radius), pulse_radius, 10)
+            screen.blit(pulse_surface, (WIDTH//2 - pulse_radius, HEIGHT//2 - pulse_radius))
+        
+        result_render = result_font.render(result_text, True, pulse_color)
+        result_rect = result_render.get_rect(center=(WIDTH//2, HEIGHT//2 - 100))
+        screen.blit(result_render, result_rect)
+        
+        title_render = score_font.render(title_text, True, WHITE)
+        title_rect = title_render.get_rect(center=(WIDTH//2, HEIGHT//2 - 20))
+        screen.blit(title_render, title_rect)
+        
+        score_text = f"Player: {player_score}  |  Computer: {computer_score}  |  Ties: {ties}"
+        score_render = detail_font.render(score_text, True, WHITE)
+        score_rect = score_render.get_rect(center=(WIDTH//2, HEIGHT//2 + 40))
+        screen.blit(score_render, score_rect)
+        
+        exit_text = "exit out to try again"
+        exit_render = detail_font.render(exit_text, True, GRAY)
+        exit_rect = exit_render.get_rect(center=(WIDTH//2, HEIGHT//2 + 100))
+        screen.blit(exit_render, exit_rect)
+        
+        pygame.display.flip()
+        clock.tick(60)
+    
+    pygame.quit()
+
+if __name__ == "__main__":
+    play_full_game()
